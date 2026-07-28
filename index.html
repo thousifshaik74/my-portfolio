@@ -893,10 +893,10 @@
                 Detailed project showcase narrative goes here.
             </p>
 
-            <!-- Real Dynamic Image Showcase Space Inside Modal -->
+            <!-- Dynamic image/video showcase space inside modal -->
             <div class="space-y-4">
                 <div class="w-full aspect-video bg-[#090f1d] rounded-2xl border border-white/5 relative overflow-hidden group/showcase">
-                    <img id="modalProjectImage" src="" alt="Project Showcase Image" class="w-full h-full object-contain transition-opacity duration-300">
+                    <div id="modalProjectMedia" class="w-full h-full"></div>
 
                     <button type="button" onclick="changeProjectSlide(-1)" class="project-slider-control absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 border border-white/10 text-white flex items-center justify-center hover:bg-white hover:text-slate-950 transition-all">
                         <i data-lucide="chevron-left" class="w-5 h-5"></i>
@@ -1132,18 +1132,21 @@
 
             currentProjectSlide = (index + currentProjectImages.length) % currentProjectImages.length;
 
-            const modalImage = document.getElementById('modalProjectImage');
+            const modalMedia = document.getElementById('modalProjectMedia');
             const counter = document.getElementById('projectSlideCounter');
             const dots = document.getElementById('projectSliderDots');
             const thumbs = document.getElementById('projectSliderThumbs');
             const controls = document.querySelectorAll('.project-slider-control');
-            const activeImage = currentProjectImages[currentProjectSlide];
+            const activeMedia = currentProjectImages[currentProjectSlide];
+            const mediaAlt = `${document.getElementById('projectTitle').innerText} showcase ${currentProjectSlide + 1}`;
+            const isVideo = /\.(mp4|webm|ogg)(?:[?#]|$)/i.test(activeMedia);
 
-            modalImage.style.opacity = '0';
+            modalMedia.style.opacity = '0';
             setTimeout(() => {
-                modalImage.src = activeImage;
-                modalImage.alt = `${document.getElementById('projectTitle').innerText} showcase ${currentProjectSlide + 1}`;
-                modalImage.style.opacity = '1';
+                modalMedia.innerHTML = isVideo
+                    ? `<video src="${activeMedia}" class="w-full h-full object-contain transition-opacity duration-300" controls autoplay muted loop playsinline preload="metadata" aria-label="${mediaAlt}"></video>`
+                    : `<img src="${activeMedia}" alt="${mediaAlt}" class="w-full h-full object-contain transition-opacity duration-300">`;
+                modalMedia.style.opacity = '1';
             }, 120);
 
             counter.innerText = `${currentProjectSlide + 1} / ${currentProjectImages.length}`;
@@ -1159,14 +1162,19 @@
                 </button>
             `).join('');
 
-            thumbs.innerHTML = currentProjectImages.map((image, thumbIndex) => `
+            thumbs.innerHTML = currentProjectImages.map((media, thumbIndex) => {
+                const thumbnailIsVideo = /\.(mp4|webm|ogg)(?:[?#]|$)/i.test(media);
+                return `
                 <button type="button"
                         onclick="showProjectSlide(${thumbIndex})"
                         class="aspect-video rounded-xl overflow-hidden border transition-all ${thumbIndex === currentProjectSlide ? 'border-cyan-400 opacity-100' : 'border-white/10 opacity-55 hover:opacity-100'}"
-                        aria-label="Show project image ${thumbIndex + 1}">
-                    <img src="${image}" alt="" class="w-full h-full object-contain bg-white">
+                        aria-label="Show project ${thumbnailIsVideo ? 'video' : 'image'} ${thumbIndex + 1}">
+                    ${thumbnailIsVideo
+                        ? `<video src="${media}" muted playsinline preload="metadata" class="w-full h-full object-cover bg-slate-950"></video>`
+                        : `<img src="${media}" alt="" class="w-full h-full object-contain bg-white">`}
                 </button>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function changeProjectSlide(direction) {
